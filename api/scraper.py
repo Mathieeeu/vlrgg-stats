@@ -7,6 +7,7 @@ import datetime
 import time
 import random
 from tqdm import tqdm
+import os
 
 
 class VLRScraper:
@@ -122,7 +123,9 @@ class VLRScraper:
         matches = []
 
         with open('data/teams.json', 'r', encoding='utf-8') as f:
-            teams_short_names = json.load(f)
+            teams_data = json.load(f)
+            teams_short_names = teams_data['short_names']
+            teams_regions = teams_data['regions']
 
         # collection of ids and urls
         for match in soup.select('.match-item'):
@@ -134,10 +137,10 @@ class VLRScraper:
             }
             matches.append(match_data)
 
-        print(f"Found {len(matches)} matches for event {event_id}")
+        # print(f"Found {len(matches)} matches for event {event_id}")
 
         # collect all match details
-        for match in tqdm(matches, desc="Collecting match details", unit="match"):
+        for match in tqdm(matches, desc=f"Collecting matches for event {event_id}", unit="match"):
             match_url = match['url']
             match_page_content = self.fetch_page(match_url)
             match_soup = BeautifulSoup(match_page_content, 'html.parser')
@@ -149,10 +152,10 @@ class VLRScraper:
             #     f.write(str(match_soup))
 
             # Extract match details
-            match['stage'] = match_soup.select_one('.match-header-event-series').get_text(strip=True).replace('\n', '').replace('\t', '') if match_soup.select_one('.match-header-event-series') else  ''
+            match['series'] = match_soup.select_one('.match-header-event-series').get_text(strip=True).replace('\n', '').replace('\t', '') if match_soup.select_one('.match-header-event-series') else  ''
             
             # if the match is a showmatch, do not extract anything from it and delete it from the list
-            if 'showmatch' in match['stage'].lower():
+            if 'showmatch' in match['series'].lower():
                 print(f"Skipping showmatch: {match['match_id']}")
                 matches.remove(match)
                 continue
@@ -211,10 +214,19 @@ class VLRScraper:
                     team_score = second_team_score
                     is_winner = first_team_score and second_team_score and int(second_team_score) > int(first_team_score)
 
+                def get_team_region(team_short_name, teams_regions, default='unknown'):
+                    for region, teams in teams_regions.items():
+                        if team_short_name in teams:
+                            return region
+                    return default
+
                 team_name = team_name_elem.get_text(strip=True) if team_name_elem else ''
+                team_short_name = teams_short_names.get(team_name, '') if team_name else None
+
                 team_info = {
                     'name': team_name,
-                    'short_name': teams_short_names.get(team_name, '') if team_name else None,
+                    'short_name': team_short_name,
+                    'region': get_team_region(team_short_name, teams_regions, default='unknown'),
                     'logo_url': 'https:' + team_logo_elem['src'] if team_logo_elem and team_logo_elem.has_attr('src') else '',
                     'team_url': f"{self.base_url}{team_link['href']}" if team_link.has_attr('href') else '',
                     'score': team_score,
@@ -243,7 +255,7 @@ class VLRScraper:
                     match['picks'].append(pb[2].strip() if len(pb) > 2 else '')
                 else:
                     print(f"Unknown pick/ban format: {pb}")
-                    continue
+                    break
 
             match['teams'] = teams
 
@@ -280,6 +292,7 @@ class VLRScraper:
                             'ct': game_soup.select('.team .mod-ct')[1].get_text(strip=True) if len(game_soup.select('.team .mod-ct')) > 1 else '',
                         }
                     },
+                    'economy': {},
                     'history': [],
                     'scoreboard': {
                         teams[0]['short_name']: [],
@@ -334,65 +347,67 @@ class VLRScraper:
                             'name': player_elem.select_one('.mod-agent img')['title'] if player_elem.select_one('.mod-agent img') else '',
                             'icon_url': self.base_url + player_elem.select_one('.mod-agent img')['src'] if player_elem.select_one('.mod-agent img') and player_elem.select_one('.mod-agent img').has_attr('src') else ''
                         },
-                        'ratio': {
-                            'both': stats[0].select_one('.mod-both').get_text(strip=True) if stats[0].select_one('.mod-both') else None,
-                            't': stats[0].select_one('.mod-t').get_text(strip=True) if stats[0].select_one('.mod-t') else None,
-                            'ct': stats[0].select_one('.mod-ct').get_text(strip=True) if stats[0].select_one('.mod-ct') else None
-                        },
-                        'acs': {
-                            'both': stats[1].select_one('.mod-both').get_text(strip=True) if stats[1].select_one('.mod-both') else None,
-                            't': stats[1].select_one('.mod-t').get_text(strip=True) if stats[1].select_one('.mod-t') else None,
-                            'ct': stats[1].select_one('.mod-ct').get_text(strip=True) if stats[1].select_one('.mod-ct') else None
-                        },
-                        'k': {
-                            'both': stats[2].select_one('.mod-both').get_text(strip=True) if stats[2].select_one('.mod-both') else None,
-                            't': stats[2].select_one('.mod-t').get_text(strip=True) if stats[2].select_one('.mod-t') else None,
-                            'ct': stats[2].select_one('.mod-ct').get_text(strip=True) if stats[2].select_one('.mod-ct') else None
-                        },
-                        'd': {
-                            'both': stats[3].select_one('.mod-both').get_text(strip=True) if stats[3].select_one('.mod-both') else None,
-                            't': stats[3].select_one('.mod-t').get_text(strip=True) if stats[3].select_one('.mod-t') else None,
-                            'ct': stats[3].select_one('.mod-ct').get_text(strip=True) if stats[3].select_one('.mod-ct') else None
-                        },
-                        'a': {
-                            'both': stats[4].select_one('.mod-both').get_text(strip=True) if stats[4].select_one('.mod-both') else None,
-                            't': stats[4].select_one('.mod-t').get_text(strip=True) if stats[4].select_one('.mod-t') else None,
-                            'ct': stats[4].select_one('.mod-ct').get_text(strip=True) if stats[4].select_one('.mod-ct') else None
-                        },
-                        'kddiff': {
-                            'both': stats[5].select_one('.mod-both').get_text(strip=True) if stats[5].select_one('.mod-both') else None,
-                            't': stats[5].select_one('.mod-t').get_text(strip=True) if stats[5].select_one('.mod-t') else None,
-                            'ct': stats[5].select_one('.mod-ct').get_text(strip=True) if stats[5].select_one('.mod-ct') else None
-                        },
-                        'kast': {
-                            'both': stats[6].select_one('.mod-both').get_text(strip=True) if stats[6].select_one('.mod-both') else None,
-                            't': stats[6].select_one('.mod-t').get_text(strip=True) if stats[6].select_one('.mod-t') else None,
-                            'ct': stats[6].select_one('.mod-ct').get_text(strip=True) if stats[6].select_one('.mod-ct') else None
-                        },
-                        'adr': {
-                            'both': stats[7].select_one('.mod-both').get_text(strip=True) if stats[7].select_one('.mod-both') else None,
-                            't': stats[7].select_one('.mod-t').get_text(strip=True) if stats[7].select_one('.mod-t') else None,
-                            'ct': stats[7].select_one('.mod-ct').get_text(strip=True) if stats[7].select_one('.mod-ct') else None
-                        },
-                        'hs': {
-                            'both': stats[8].select_one('.mod-both').get_text(strip=True) if stats[8].select_one('.mod-both') else None,
-                            't': stats[8].select_one('.mod-t').get_text(strip=True) if stats[8].select_one('.mod-t') else None,
-                            'ct': stats[8].select_one('.mod-ct').get_text(strip=True) if stats[8].select_one('.mod-ct') else None
-                        },
-                        'fk': {
-                            'both': stats[9].select_one('.mod-both').get_text(strip=True) if stats[9].select_one('.mod-both') else None,
-                            't': stats[9].select_one('.mod-t').get_text(strip=True) if stats[9].select_one('.mod-t') else None,
-                            'ct': stats[9].select_one('.mod-ct').get_text(strip=True) if stats[9].select_one('.mod-ct') else None
-                        },
-                        'fd': {
-                            'both': stats[10].select_one('.mod-both').get_text(strip=True) if stats[10].select_one('.mod-both') else None,
-                            't': stats[10].select_one('.mod-t').get_text(strip=True) if stats[10].select_one('.mod-t') else None,
-                            'ct': stats[10].select_one('.mod-ct').get_text(strip=True) if stats[10].select_one('.mod-ct') else None
-                        },
-                        'fkddiff': {
-                            'both': stats[11].select_one('.mod-both').get_text(strip=True) if stats[11].select_one('.mod-both') else None,
-                            't': stats[11].select_one('.mod-t').get_text(strip=True) if stats[11].select_one('.mod-t') else None,
-                            'ct': stats[11].select_one('.mod-ct').get_text(strip=True) if stats[11].select_one('.mod-ct') else None
+                        'stats': {
+                            'ratio': {
+                                'both': stats[0].select_one('.mod-both').get_text(strip=True) if stats[0].select_one('.mod-both') else None,
+                                't': stats[0].select_one('.mod-t').get_text(strip=True) if stats[0].select_one('.mod-t') else None,
+                                'ct': stats[0].select_one('.mod-ct').get_text(strip=True) if stats[0].select_one('.mod-ct') else None
+                            },
+                            'acs': {
+                                'both': stats[1].select_one('.mod-both').get_text(strip=True) if stats[1].select_one('.mod-both') else None,
+                                't': stats[1].select_one('.mod-t').get_text(strip=True) if stats[1].select_one('.mod-t') else None,
+                                'ct': stats[1].select_one('.mod-ct').get_text(strip=True) if stats[1].select_one('.mod-ct') else None
+                            },
+                            'k': {
+                                'both': stats[2].select_one('.mod-both').get_text(strip=True) if stats[2].select_one('.mod-both') else None,
+                                't': stats[2].select_one('.mod-t').get_text(strip=True) if stats[2].select_one('.mod-t') else None,
+                                'ct': stats[2].select_one('.mod-ct').get_text(strip=True) if stats[2].select_one('.mod-ct') else None
+                            },
+                            'd': {
+                                'both': stats[3].select_one('.mod-both').get_text(strip=True) if stats[3].select_one('.mod-both') else None,
+                                't': stats[3].select_one('.mod-t').get_text(strip=True) if stats[3].select_one('.mod-t') else None,
+                                'ct': stats[3].select_one('.mod-ct').get_text(strip=True) if stats[3].select_one('.mod-ct') else None
+                            },
+                            'a': {
+                                'both': stats[4].select_one('.mod-both').get_text(strip=True) if stats[4].select_one('.mod-both') else None,
+                                't': stats[4].select_one('.mod-t').get_text(strip=True) if stats[4].select_one('.mod-t') else None,
+                                'ct': stats[4].select_one('.mod-ct').get_text(strip=True) if stats[4].select_one('.mod-ct') else None
+                            },
+                            'kddiff': {
+                                'both': stats[5].select_one('.mod-both').get_text(strip=True) if stats[5].select_one('.mod-both') else None,
+                                't': stats[5].select_one('.mod-t').get_text(strip=True) if stats[5].select_one('.mod-t') else None,
+                                'ct': stats[5].select_one('.mod-ct').get_text(strip=True) if stats[5].select_one('.mod-ct') else None
+                            },
+                            'kast': {
+                                'both': stats[6].select_one('.mod-both').get_text(strip=True) if stats[6].select_one('.mod-both') else None,
+                                't': stats[6].select_one('.mod-t').get_text(strip=True) if stats[6].select_one('.mod-t') else None,
+                                'ct': stats[6].select_one('.mod-ct').get_text(strip=True) if stats[6].select_one('.mod-ct') else None
+                            },
+                            'adr': {
+                                'both': stats[7].select_one('.mod-both').get_text(strip=True) if stats[7].select_one('.mod-both') else None,
+                                't': stats[7].select_one('.mod-t').get_text(strip=True) if stats[7].select_one('.mod-t') else None,
+                                'ct': stats[7].select_one('.mod-ct').get_text(strip=True) if stats[7].select_one('.mod-ct') else None
+                            },
+                            'hs': {
+                                'both': stats[8].select_one('.mod-both').get_text(strip=True) if stats[8].select_one('.mod-both') else None,
+                                't': stats[8].select_one('.mod-t').get_text(strip=True) if stats[8].select_one('.mod-t') else None,
+                                'ct': stats[8].select_one('.mod-ct').get_text(strip=True) if stats[8].select_one('.mod-ct') else None
+                            },
+                            'fk': {
+                                'both': stats[9].select_one('.mod-both').get_text(strip=True) if stats[9].select_one('.mod-both') else None,
+                                't': stats[9].select_one('.mod-t').get_text(strip=True) if stats[9].select_one('.mod-t') else None,
+                                'ct': stats[9].select_one('.mod-ct').get_text(strip=True) if stats[9].select_one('.mod-ct') else None
+                            },
+                            'fd': {
+                                'both': stats[10].select_one('.mod-both').get_text(strip=True) if stats[10].select_one('.mod-both') else None,
+                                't': stats[10].select_one('.mod-t').get_text(strip=True) if stats[10].select_one('.mod-t') else None,
+                                'ct': stats[10].select_one('.mod-ct').get_text(strip=True) if stats[10].select_one('.mod-ct') else None
+                            },
+                            'fkddiff': {
+                                'both': stats[11].select_one('.mod-both').get_text(strip=True) if stats[11].select_one('.mod-both') else None,
+                                't': stats[11].select_one('.mod-t').get_text(strip=True) if stats[11].select_one('.mod-t') else None,
+                                'ct': stats[11].select_one('.mod-ct').get_text(strip=True) if stats[11].select_one('.mod-ct') else None
+                            }
                         }
                     }
                     players.append(player)
@@ -411,6 +426,128 @@ class VLRScraper:
                     teams[0]['short_name']: team1_players,
                     teams[1]['short_name']: team2_players
                 }
+
+                # Performance tab
+                performance_url = f"{match['url']}?game={game_id}&tab=performance"
+                performance_page_content = self.fetch_page(performance_url)
+                performance_tab_soup = BeautifulSoup(performance_page_content, 'html.parser')
+
+                # # write the performance page content to a file for debugging
+                # with open(f"output/{match['match_id']}_performance_tab.html", "w", encoding="utf-8") as f:
+                #     f.write(str(performance_tab_soup))
+
+                performance_soup = performance_tab_soup.select_one('.vm-stats-game[data-game-id="' + game_id + '"]')
+
+                # # write the performance page content to a file for debugging
+                # with open(f"output/{match['match_id']}_performance.html", "w", encoding="utf-8") as f:
+                #     f.write(str(performance_soup))
+
+                stats_soup = performance_soup.select_one('.mod-adv-stats')
+
+                # # write the stats page content to a file for debugging
+                # with open(f"output/{match['match_id']}_stats.html", "w", encoding="utf-8") as f:
+                #     f.write(str(stats_soup))
+                    
+                for player_elem in stats_soup.select('tr'):
+
+                    player_name_elem = player_elem.select_one('.team > div')
+                    if not player_name_elem:
+                        continue
+
+                    player_name = player_name_elem.contents[0].strip() if player_name_elem.contents else ''
+                    player_team_short = player_name_elem.contents[1].get_text(strip=True) if len(player_name_elem.contents) > 1 else ''
+                    # print(f"{player_team_short} {player_name}")
+
+                    stats = player_elem.select('.stats-sq')
+
+                    # skip the header row 
+                    if not stats:
+                        continue
+
+                    multikills_stats = {
+                        '2k': int(stats[1].contents[0].strip()) if stats[1].contents[0].strip() else 0,
+                        '3k': int(stats[2].contents[0].strip()) if stats[2].contents[0].strip() else 0,
+                        '4k': int(stats[3].contents[0].strip()) if stats[3].contents[0].strip() else 0,
+                        '5k': int(stats[4].contents[0].strip()) if stats[4].contents[0].strip() else 0
+                    }
+
+                    clutches_stats = {
+                        '1v1': int(stats[5].contents[0].strip()) if stats[5].contents[0].strip() else 0,
+                        '1v2': int(stats[6].contents[0].strip()) if stats[6].contents[0].strip() else 0,
+                        '1v3': int(stats[7].contents[0].strip()) if stats[7].contents[0].strip() else 0,
+                        '1v4': int(stats[8].contents[0].strip()) if stats[8].contents[0].strip() else 0,
+                        '1v5': int(stats[9].contents[0].strip()) if stats[9].contents[0].strip() else 0
+                    }
+
+                    eco = int(stats[10].contents[0].strip()) if stats[10].contents[0].strip() else 0
+                    plant = int(stats[11].contents[0].strip()) if stats[11].contents[0].strip() else 0
+                    defuse = int(stats[12].contents[0].strip()) if stats[12].contents[0].strip() else 0
+
+                    # print(f"Multikills stats for {player_name}: {multikills_stats} Clutches stats: {clutches_stats} Eco: {eco} Plant: {plant} Defuse: {defuse}")
+
+                    for player in game_data['scoreboard'][player_team_short]:
+                        if player['name'] == player_name:
+                            player['stats']['multikills'] = multikills_stats
+                            player['stats']['clutches'] = clutches_stats
+                            player['stats']['eco'] = eco
+                            player['stats']['plant'] = plant
+                            player['stats']['defuse'] = defuse
+                            break
+
+
+                # Economy tab
+                economy_url = f"{match['url']}?game={game_id}&tab=economy"
+                economy_page_content = self.fetch_page(economy_url)
+                economy_tab_soup = BeautifulSoup(economy_page_content, 'html.parser')
+
+                # # write the economy page content to a file for debugging
+                # with open(f"output/{match['match_id']}_economy_tab.html", "w", encoding="utf-8") as f:
+                #     f.write(str(economy_tab_soup))
+
+                economy_soup = economy_tab_soup.select_one('.vm-stats-game[data-game-id="' + game_id + '"]')
+
+                stats_soup = economy_soup.select_one('.mod-econ')
+
+                # # write the economy stats page content to a file for debugging
+                # with open(f"output/{match['match_id']}_economy_stats.html", "w", encoding="utf-8") as f:
+                #     f.write(str(stats_soup))
+
+                for team_elem in stats_soup.select('tr'):
+                    team_name_elem = team_elem.select_one('.team')
+                    if not team_name_elem:
+                        continue
+                    
+                    team_short_name = team_name_elem.get_text(strip=True)
+                    if team_short_name not in [teams[0]['short_name'], teams[1]['short_name']]:
+                        continue
+
+                    stats = team_elem.select('.stats-sq')
+                    pistols_won = int(stats[0].contents[0].strip()) if stats[0].contents[0].strip() else 0
+                    
+                    economy_stats = {
+                        'pistol': pistols_won,
+                        'eco': {
+                            # pistols do not count as eco rounds in VLR, so we subtract them from the played and won counts
+                            'played': int(stats[1].contents[0].strip().replace('\t', '').partition('(')[0]) - 2 if stats[1].contents[0].strip() else 0,
+                            'won': int(stats[1].contents[0].strip().replace('\t', '').partition('(')[2].replace(')', '')) - pistols_won if stats[1].contents[0].strip() else 0
+                        },
+                        'semi_eco': {
+                            'played': int(stats[2].contents[0].strip().replace('\t', '').partition('(')[0]) if stats[2].contents[0].strip() else 0,
+                            'won': int(stats[2].contents[0].strip().replace('\t', '').partition('(')[2].replace(')', '')) if stats[2].contents[0].strip() else 0
+                        },
+                        'semi_buy': {
+                            'played': int(stats[3].contents[0].strip().replace('\t', '').partition('(')[0]) if stats[3].contents[0].strip() else 0,
+                            'won': int(stats[3].contents[0].strip().replace('\t', '').partition('(')[2].replace(')', '')) if stats[3].contents[0].strip() else 0
+                        },
+                        'full_buy': {
+                            'played': int(stats[4].contents[0].strip().replace('\t', '').partition('(')[0]) if stats[4].contents[0].strip() else 0,
+                            'won': int(stats[4].contents[0].strip().replace('\t', '').partition('(')[2].replace(')', '')) if stats[4].contents[0].strip() else 0
+                        }
+                    }
+
+                    # print(f"Economy stats for {team_short_name}: {economy_stats}")
+
+                    game_data['economy'][team_short_name] = economy_stats
 
                 games.append(game_data)
 
@@ -434,14 +571,41 @@ if __name__ == "__main__":
 
     print(f"Collected {len(events)} events for season {season} in {time.time() - t0:.2f} seconds")
 
-    # Example of collecting matches for a specific event
-    event_id = "1494" # 1494 = Masters Tokyo, 1657 = Champions Los Angeles
-    try:
-        matches = scraper.collect_matches(event_id)
-        with open(f"output/event_{event_id}_matches.json", "w", encoding="utf-8") as f:
-            json.dump(matches, f, indent=2)
+    # # Example of collecting matches for a specific event
+    # event_id = "1494" # 1494 = Masters Tokyo, 1657 = Champions Los Angeles
+    # try:
+    #     matches = scraper.collect_matches(event_id)
+    #     with open(f"output/event_{event_id}_matches.json", "w", encoding="utf-8") as f:
+    #         json.dump(matches, f, indent=2)
 
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    # except Exception as e:
+    #     print(f"An error occurred: {e}")
+
+    all_events_ids = [event['id'] for event in events]
+    print(f"Found {len(all_events_ids)} events with IDs: {all_events_ids}")
+
+    all_matches = []
+    for event_id in all_events_ids:
+        try:
+            matches = scraper.collect_matches(event_id)
+            all_matches.extend(matches)
+
+            # save backup
+            with open(f"backup/{season}_matches_{event_id}.json", "w", encoding="utf-8") as f:
+                json.dump(matches, f, separators=(',', ': '))
+
+        except Exception as e:
+            print(f"An error occurred while collecting matches for event {event_id}: {e}")
+
+    with open(f"output/{season}_matches.json", "w", encoding="utf-8") as f:
+        json.dump(all_matches, f, indent=2)
+
+    with open(f"output/{season}_matches_raw.json", "w", encoding="utf-8") as f:
+        json.dump(all_matches, f, separators=(',', ': '))
+    
+    # # delete the backup files
+    # backup_files = [f for f in os.listdir('backup') if f.startswith(f"{season}_matches_")]
+    # for file in backup_files:
+    #     os.remove(os.path.join('backup', file))
 
     print(f"Scraping completed in {time.time() - t0:.2f} seconds")
