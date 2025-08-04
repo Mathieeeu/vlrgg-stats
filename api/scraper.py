@@ -680,51 +680,64 @@ if __name__ == "__main__":
 
     t0 = time.time()
     scraper = VLRScraper(delay=0.5)
-    season = "vct-2023"
-    try:
-        events = scraper.collect_events(season)
-        with open(f"output/{season}_events.json", "w", encoding="utf-8") as f:
-            json.dump(events, f, indent=2)
-    except Exception as e:
-        logger.error(f"An error occurred: {e}")
+    # season = "vct-2023"
+    # try:
+    #     events = scraper.collect_events(season)
+    #     with open(f"output/{season}_events.json", "w", encoding="utf-8") as f:
+    #         json.dump(events, f, indent=2)
+    # except Exception as e:
+    #     logger.error(f"An error occurred: {e}")
+
+    seasons = ["vct-2023", "vct-2024", "vct-2025"]
+    all_events = []
+    for season in seasons:
+        try:
+            events = scraper.collect_events(season)
+            all_events.extend(events)
+        except Exception as e:
+            logger.error(f"An error occurred: {e}")
+
+    with open(f"output/all_events.json", "w", encoding="utf-8") as f:
+        json.dump(all_events, f, indent=2)
+    events = all_events
 
     logger.info(f"Collected {len(events)} events for season {season} in {time.time() - t0:.2f} seconds")
 
-    # Example of collecting matches for a specific event
-    event_id = "1664" # 1494 = Masters Tokyo, 1657 = Champions Los Angeles
-    try:
-        matches = scraper.collect_matches(event_id)
-        with open(f"output/event_{event_id}_matches.json", "w", encoding="utf-8") as f:
-            json.dump(matches, f, indent=2)
+    # # Example of collecting matches for a specific event
+    # event_id = "1664" # 1494 = Masters Tokyo, 1657 = Champions Los Angeles
+    # try:
+    #     matches = scraper.collect_matches(event_id)
+    #     with open(f"output/event_{event_id}_matches.json", "w", encoding="utf-8") as f:
+    #         json.dump(matches, f, indent=2)
 
-    except Exception as e:
-        logger.error(f"An error occurred: {e}")
+    # except Exception as e:
+    #     logger.error(f"An error occurred: {e}")
 
-    # all_events_ids = [event['id'] for event in events]
-    # logger.info(f"Found {len(all_events_ids)} events with IDs: {all_events_ids}")
+    all_events_ids = [event['id'] for event in events]
+    logger.info(f"Found {len(all_events_ids)} events with IDs: {all_events_ids}")
 
-    # all_matches = []
-    # for event_id in tqdm(all_events_ids, desc="Collecting matches for all events", unit="event"):
-    #     try:
-    #         matches = scraper.collect_matches(event_id)
-    #         all_matches.extend(matches)
+    all_matches = []
+    for event_id in tqdm(all_events_ids, desc="Collecting matches for all events", unit="event"):
+        try:
+            matches = scraper.collect_matches(event_id)
+            all_matches.extend(matches)
 
-    #         # save backup
-    #         with open(f"backup/{season}_matches_{event_id}.json", "w", encoding="utf-8") as f:
-    #             json.dump(matches, f, separators=(',', ': '))
+            # save backup
+            with open(f"backup/{season}_matches_{event_id}.json", "w", encoding="utf-8") as f:
+                json.dump(matches, f, separators=(',', ': '))
 
-    #     except Exception as e:
-    #         logger.error(f"An error occurred while collecting matches for event {event_id}: {e}")
+        except Exception as e:
+            logger.error(f"An error occurred while collecting matches for event {event_id}: {e}")
 
-    # with open(f"output/{season}_matches.json", "w", encoding="utf-8") as f:
-    #     json.dump(all_matches, f, indent=2)
+    with open(f"output/{season}_matches.json", "w", encoding="utf-8") as f:
+        json.dump(all_matches, f, indent=2)
 
-    # with open(f"output/{season}_matches_raw.json", "w", encoding="utf-8") as f:
-    #     json.dump(all_matches, f, separators=(',', ': '))
+    with open(f"output/{season}_matches_raw.json", "w", encoding="utf-8") as f:
+        json.dump(all_matches, f, separators=(',', ': '))
     
-    # # # delete the backup files
-    # # backup_files = [f for f in os.listdir('backup') if f.startswith(f"{season}_matches_")]
-    # # for file in backup_files:
-    # #     os.remove(os.path.join('backup', file))
+    # # delete the backup files
+    # backup_files = [f for f in os.listdir('backup') if f.startswith(f"{season}_matches_")]
+    # for file in backup_files:
+    #     os.remove(os.path.join('backup', file))
 
     logger.info(f"Scraping completed in {time.time() - t0:.2f} seconds")

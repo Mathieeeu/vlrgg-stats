@@ -42,18 +42,28 @@
         "Monarch Effect": "ME",
         "Shenzhen NTER": "NTER",
         "Four Angry Men": "4AM",
+        "Gank Gaming": "GK",
+        "Night Wings Gaming": "NWG",
+        "Douyu Gaming": "DYG",
+        "Number One Player": "NOP",
+        "Invicible Gaming": "iNv",
+        "Rare Atom": "RA",
+        "Kingzone": "KZ",
 
         "G2 Esports": "G2",
         "Gentle Mates": "M8",
         "GIANTX": "GX",
-        "Bleed Esports": "BLD",
+        "BLEED": "BLD",
         "All Gamers": "AG",
         "JD Gaming": "JDG",
         "Nova Esports": "NOVA",
         "Titan Esports Club": "TEC",
         "Wolves Esports": "WOL",
 
-        "2GAME Esports": "2G",
+        "2Game Esports": "2G",
+        "Movistar KOI (KOI)": "MKOI",
+        "VISA KRÜ (KRÜ Esports)": "KRÜ",
+        "Guangzhou Huadu Bilibili Gaming (Bilibili Gaming)": "BLG",
         "Xi Lai Gaming": "XLG",
         "Apeks": "APK",
         "Nongshim RedForce": "NS",
@@ -122,7 +132,14 @@
             "NOVA",
             "TEC",
             "WOL",
-            "XLG"
+            "XLG",
+            "GK",
+            "NWG",
+            "DYG",
+            "NOP",
+            "iNv",
+            "RA",
+            "KZ"
         ]
     }
 } 
