@@ -80,14 +80,13 @@ maps = ["Lotus", "Abyss", "Sunset", "Corrode", "Icebox", "Haven", "Bind", "Split
 maps.sort()
 agent_counts_with_maps = {map_name: {agent: 0 for agent in agent_counts.keys()} for map_name in maps}
 
-# Count agent picks per map
+# agent picks per map
 for compo in compos:
     map_name = compo["map"]
     if map_name in agent_counts_with_maps:
         for agent in compo["agents"]:
             agent_counts_with_maps[map_name][agent] += 1
 
-# # Print agent counts per map
 # print("Agent counts per map:")
 # for map_name, counts in agent_counts_with_maps.items():
 #     print(f"Map: {map_name}")
@@ -96,18 +95,16 @@ for compo in compos:
 #             print(f"  {agent}: {count}")
 
 
-# Convert agent counts to DataFrame for easier plotting
 agent_counts_df = pd.DataFrame(agent_counts.items(), columns=['Agent', 'Pick Count'])
 agent_counts_df.sort_values(by='Pick Count', ascending=False, inplace=True)
 
-# Create a stacked bar chart for agent pick counts per map with maps as colors and agents on the x-axis
+# stacked bar chart for agent pick counts per map with maps as colors and agents on the x-axis
 agent_names = list(agent_counts.keys())
 map_names = list(agent_counts_with_maps.keys())
 
-# Prepare data for stacked bar chart
+# prepare data for stacked bar chart
 data = {map_name: [agent_counts_with_maps[map_name][agent] for agent in agent_names] for map_name in map_names}
 
-# Create the plot
 plt.figure(figsize=(14, 8))
 bottom = [0] * len(agent_names)
 for map_name, counts in data.items():

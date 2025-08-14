@@ -2,7 +2,6 @@ import json
 import matplotlib.pyplot as plt
 import pandas as pd
 
-# Import data
 data_file = 'examples/vct-2023-2025_matches_raw.json'
 with open(data_file, 'r') as file:
     data = json.load(file)
@@ -13,7 +12,6 @@ team_data_file = 'data/teams.json'
 with open(team_data_file, 'r', encoding='utf-8') as file:
     teams_data = json.load(file)
 
-# Extracting team data
 game_count = 0
 teams = {}
 for i, match in enumerate(data):
@@ -35,11 +33,9 @@ for i, match in enumerate(data):
             teams[team]["pistol"]["won"] += game["economy"].get(team, {"pistol": 0})["pistol"]
             teams[team]["pistol"]["lost"] += 2 - game["economy"].get(team, {"pistol": 0})["pistol"]
 
-# Print the number of games processed
 print(f"Number of games processed: {game_count} ({game_count / len(data) if len(data) > 0 else 0:.2f} games/match)")    
 
 
-# Print teams with highest pistol win rate
 pistol_win_rate = sorted(teams.items(), key=lambda item: item[1]["pistol"]["won"] / item[1]["pistol"]["played"], reverse=True)
 print("\nTeams with highest pistol win rate:")
 for team, stats in pistol_win_rate:

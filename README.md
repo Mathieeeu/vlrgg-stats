@@ -102,7 +102,7 @@ v2
                                     "t": "integer",
                                     "ct": "integer"
                                 },
-                                // ... (other stats : d, a, kddiff, kast, adr, hs, fk, fd, fdiff)
+                                // ... (other stats : d, a, kddiff, kast, adr, hs, fk, fd, fkddiff)
                                 "multikills": {
                                     "2k": "integer",
                                     "3k": "integer",
