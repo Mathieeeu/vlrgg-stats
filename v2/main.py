@@ -55,6 +55,7 @@ def main(
     season_scraper = SeasonScraper(delay=request_delay, oldest_date=oldest_date, full_log=False, logger=logger)
     
     i=1
+    events_to_collect = []
     for season_id in tqdm.tqdm(seasons, desc="Processing seasons"):
         logger.info(f"Processing season: {season_id} ({i}/{len(seasons)})")
         i+=1
@@ -65,7 +66,8 @@ def main(
             if events:
                 
                 os.makedirs("output", exist_ok=True)
-                
+
+                events_to_collect.extend(events)
                 with open(f"output/{season_id}_events.json", "w", encoding="utf-8") as f:
                     json.dump(events, f, separators=(',', ':'), ensure_ascii=False, default=str)
                 
@@ -80,6 +82,7 @@ def main(
             continue
     
     season_scraper.close()
+    events = events_to_collect
 
     event_scraper = EventScraper(delay=request_delay, full_log=False, logger=logger)
 
@@ -205,14 +208,14 @@ if __name__ == "__main__":
         "vct-2025"
     ]
 
-    # # date la plus ancienne à scraper
-    # query = "SELECT MAX(date) as max_date FROM matches;"
-    # oldest_date = execute_query(query)[0]['max_date']
-    # if not oldest_date:
-    #     logger.error("No max_date found in database. Exiting.")
-    #     print("No max_date found in database. Exiting.")
-    #     sys.exit(1)
+    # date la plus ancienne à scraper
     oldest_date = "2020-01-01" # année de lancement de valorant
+    query = "SELECT MAX(date) as max_date FROM matches;"
+    oldest_date = execute_query(query)[0]['max_date']
+    if not oldest_date:
+        logger.error("No max_date found in database. Exiting.")
+        print("No max_date found in database. Exiting.")
+        sys.exit(1)
     # oldest_date = "2025-01-01" # saison 2025 complète
     # oldest_date = "2025-07-01" # que split 2 + champs
     # oldest_date = "2025-09-10" # que les champions
@@ -220,7 +223,7 @@ if __name__ == "__main__":
     logger.info(f"Scraping events after: {oldest_date}")
 
     request_delay = 0.2
-    overwrite_db = True
+    overwrite_db = False
 
     if overwrite_db:
         input("Database will be overwritten. Press Enter to continue or Ctrl+C to abort...")
