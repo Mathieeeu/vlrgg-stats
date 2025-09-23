@@ -3,6 +3,7 @@ output/
 backup/
 logs/
 examples/*
+.env/
 
 __pycache__/
 *.db

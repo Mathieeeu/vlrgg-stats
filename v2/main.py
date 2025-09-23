@@ -212,15 +212,15 @@ if __name__ == "__main__":
     #     logger.error("No max_date found in database. Exiting.")
     #     print("No max_date found in database. Exiting.")
     #     sys.exit(1)
-    # oldest_date = "2020-01-01" # année de lancement de valorant
+    oldest_date = "2020-01-01" # année de lancement de valorant
     # oldest_date = "2025-01-01" # saison 2025 complète
     # oldest_date = "2025-07-01" # que split 2 + champs
-    oldest_date = "2025-09-10" # que les champions
+    # oldest_date = "2025-09-10" # que les champions
     print(f"Scraping events after: {oldest_date}")
     logger.info(f"Scraping events after: {oldest_date}")
 
     request_delay = 0.2
-    overwrite_db = False
+    overwrite_db = True
 
     if overwrite_db:
         input("Database will be overwritten. Press Enter to continue or Ctrl+C to abort...")

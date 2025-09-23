@@ -21,8 +21,8 @@ ORDER BY start_date DESC;
 `
     },
     {
-        title: "Équipes avec le plus de matchs joués",
-        description: "Top 10 des équipes ayant joué le plus de matchs",
+        title: "Matches joués par équipe",
+        description: "Nombre total de matchs joués par équipe",
         query: 
 `SELECT 
     t.name, 
@@ -31,7 +31,7 @@ ORDER BY start_date DESC;
 FROM teams t 
 LEFT JOIN match_teams mt ON t.id = mt.team_id 
 GROUP BY t.id, t.name, t.region 
-ORDER BY matches_played DESC LIMIT 10;
+ORDER BY matches_played DESC;
 `
     },
     {
