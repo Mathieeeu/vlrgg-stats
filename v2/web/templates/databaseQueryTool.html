@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCT Database</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='vct-logo.svg') }}">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>Tables</h3>
+        </div>
+        <div class="tables-container" id="tables-container">
+            <div class="loading-tables">Chargement des tables...</div>
+        </div>
+
+        <div class="footer">
+            <p>Données : VCT 2023 à 2025</p>
+            <p>Dernière mise à jour : 23/09/2025 (v2)</p>
+            <p>Récupérées sur : <a href="https://www.vlr.gg/" target="_blank">vlr.gg</a></p>
+            <p><a href="https://github.com/Mathieeeu/vlrgg-stats" target="_blank">Github du projet</a></p>
+            <p>La bise ♥</p>
+        </div>
+    </div>
+
+    <button class="sidebar-open-btn" onclick="toggleSidebar()">☰</button>
+
+    <div class="main-container">
+        <header>
+            <h1>Outil de requête SQL</h1>
+            <p>Pour interagir avec la base de données VCT</p>
+        </header>
+
+        <main>
+            <div class="query-section">
+                <label for="queryTextarea">Requête SQL :</label>
+                <textarea id="queryTextarea" placeholder="Tapez votre requête SELECT ici..." spellcheck="false">SELECT title, start_date, end_date, region, location, status, url FROM events ORDER BY start_date DESC;</textarea>
+
+                <div class="buttons">
+                    <button onclick="executeQuery()">Exécuter</button>
+                    <!-- <button onclick="clearQuery()">Effacer</button> -->
+                </div>
+            </div>
+
+
+            <div id="loading" class="loading" style="display: none;">
+                <p>Exécution en cours...</p>
+            </div>
+
+            <div id="results" class="results" style="display: none;">
+                <h3>Résultats</h3>
+                <div id="results-info"></div>
+                <div class="table-container">
+                    <table id="results-table">
+                        <thead id="results-header"></thead>
+                        <tbody id="results-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="error" class="error" style="display: none;">
+                <h3>Erreur</h3>
+                <div id="error-message"></div>
+            </div>
+
+            <div class="predefined-queries">
+                <h3>Requêtes prédéfinies</h3>
+                <div class="queries-grid" id="queries-grid">
+                    <!-- cartes générées par js -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
