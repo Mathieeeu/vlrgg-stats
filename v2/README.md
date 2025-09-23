@@ -34,6 +34,7 @@
     - [ ] Nombre de matchs/joueurs/teams/events
     - [ ] Top 10 des joueurs par un critère changeable (ACS, K, D, K/D, KAST, ADR, HS%, FK Diff, etc)
     - [ ] Graphique du nombre de victoires pour chaque région dans chaque tournoi inter (pour voir l'évolution dans le temps)
+- [ ] *Réparer le pb de regex avec les noms des maps qui persiste depuis le débuuuuuuuut*
 - [ ] Automatisation quotidienne du scraper
 - [ ] PHP client pour le site 
 - [ ] Jeu VCTdle (style valodle avec des joueurs et des vraies stats (nombre d'équipes, nombre d'inters, kills, morts...))

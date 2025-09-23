@@ -86,15 +86,15 @@ ORDER BY date desc;
 `
     },
     {
-        title: "Top 10 des maps jouées",
-        description: "Les 10 maps les plus jouées dans les matchs",
+        title: "Nombre de parties par carte",
+        description: "Les 12 cartes les plus jouées",
         query:
 `SELECT 
     map, 
     COUNT(*) as play_count 
 FROM games 
 GROUP BY map 
-ORDER BY play_count DESC LIMIT 10;
+ORDER BY play_count DESC LIMIT 12;
 `
     },
     {
