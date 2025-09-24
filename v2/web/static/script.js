@@ -53,15 +53,17 @@ ORDER BY avg_acs DESC LIMIT 20;
     },
     {
         title: "Nombre de matchs par événement",
-        description: "Événements classés par nombre total de matchs",
+        description: "Événements classés par nombre total de parties et de matchs joués",
         query: 
 `SELECT 
     e.title, 
-    COUNT(m.match_id) as total_matches 
+    COUNT(DISTINCT(m.match_id)) as total_matches,
+    COUNT(g.game_id) as total_games
 FROM events e 
-LEFT JOIN matches m ON e.id = m.event_id 
+LEFT JOIN matches m ON e.id = m.event_id
+LEFT JOIN games g ON g.match_id = m.match_id
 GROUP BY e.id, e.title 
-ORDER BY total_matches DESC;
+ORDER BY total_matches DESC, total_games DESC;
 `
     },
     {
@@ -319,8 +321,22 @@ function showResults(data) {
     document.getElementById('error').style.display = 'none';
     document.getElementById('results').style.display = 'block';
 
-    document.getElementById('results-info').textContent = 
-        `${data.count} résultat(s) trouvé(s)`;
+    // Stocker les données pour le téléchargement CSV
+    currentResultData = data;
+
+    const resultsInfo = document.getElementById('results-info');
+    
+    // Créer le contenu avec le message et le bouton (si il y a des résultats)
+    if (data.data.length > 0) {
+        resultsInfo.innerHTML = `
+            <span>${data.count} résultat(s) trouvé(s)</span>
+            <button class="download-csv-btn" onclick="downloadCSV()" title="Télécharger en CSV">
+                Télécharger CSV
+            </button>
+        `;
+    } else {
+        resultsInfo.textContent = `${data.count} résultat(s) trouvé(s)`;
+    }
 
     const header = document.getElementById('results-header');
     const body = document.getElementById('results-body');
@@ -357,6 +373,58 @@ function showError(message) {
     document.getElementById('results').style.display = 'none';
     document.getElementById('error').style.display = 'block';
     document.getElementById('error-message').textContent = message;
+}
+
+// variable pour stocker les dernières données de résultat
+let currentResultData = null;
+
+function downloadCSV() {
+    if (!currentResultData || !currentResultData.data || currentResultData.data.length === 0) {
+        alert('Aucune donnée à télécharger');
+        return;
+    }
+
+    // Créer le contenu CSV
+    let csvContent = '';
+    
+    // Ajouter l'en-tête (noms des colonnes)
+    csvContent += currentResultData.columns.join(',') + '\n';
+    
+    // Ajouter les données
+    currentResultData.data.forEach(row => {
+        const rowData = currentResultData.columns.map(column => {
+            let value = row[column];
+            
+            // Gérer les valeurs nulles/undefined
+            if (value === null || value === undefined) {
+                value = '';
+            }
+            
+            // Échapper les guillemets et encapsuler les valeurs contenant des virgules ou des guillemets
+            value = String(value);
+            if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                value = '"' + value.replace(/"/g, '""') + '"';
+            }
+            
+            return value;
+        });
+        csvContent += rowData.join(',') + '\n';
+    });
+
+    // Créer le blob et déclencher le téléchargement
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `resultats_requete_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
 }
 
 function clearQuery() {
