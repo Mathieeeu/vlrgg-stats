@@ -52,6 +52,25 @@ body {
     color: var(--color-text-primary);
     line-height: 1.6;
     display: flex;
+    overflow: auto;
+}
+
+body::-webkit-scrollbar {
+    width: 5px;
+}
+
+body::-webkit-scrollbar-track {
+    background: var(--bg-light);
+    border-radius: 10px;
+}
+
+body::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    border-radius: 10px;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
 }
 
 .sidebar {
@@ -104,6 +123,24 @@ body {
     padding: 20px;
     flex: 1;
     overflow-y: auto;
+}
+
+.tables-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.tables-container::-webkit-scrollbar-track {
+    background: var(--bg-light);
+    border-radius: 10px;
+}
+
+.tables-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    border-radius: 10px;
+}
+
+.tables-container::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
 }
 
 .loading-tables {
@@ -459,6 +496,24 @@ button:last-child {
     max-height: 500px;
     border: 1px solid var(--border-light);
     border-radius: 6px;
+}
+
+.table-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: var(--bg-light);
+    border-radius: 10px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    border-radius: 10px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
 }
 
 #results-table {
