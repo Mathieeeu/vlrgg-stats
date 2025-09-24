@@ -143,6 +143,34 @@ WHERE teams.short_name = "FNC"
 GROUP BY games.map 
 ORDER BY winrate DESC;
 `
+    },
+    {
+        title: "Winrate en match-point",
+        description: "Taux de victoire lorsqu'une équipe atteint 12 rounds en premier (année 2025 ici)",
+        query:
+`SELECT
+    t.short_name AS team,
+    COUNT(*) AS games_first_to_12,
+    SUM(CASE WHEN g.win = t.id THEN 1 ELSE 0 END) AS wins_first_to_12,
+    ROUND(AVG(CASE WHEN g.win = t.id THEN 1 ELSE 0 END), 2) AS winrate_first_to_12
+FROM games g
+JOIN (
+    SELECT rh1.game_id, MIN(rh1.round_number) AS round_number_12
+    FROM round_history rh1
+    WHERE CAST(SUBSTR(rh1.score, 1, INSTR(rh1.score, '-') - 1) AS INTEGER) = 12
+       OR CAST(SUBSTR(rh1.score, INSTR(rh1.score, '-') + 1) AS INTEGER) = 12
+    GROUP BY rh1.game_id
+) first12 ON first12.game_id = g.game_id
+JOIN round_history rh 
+    ON rh.game_id = first12.game_id 
+   AND rh.round_number = first12.round_number_12
+JOIN matches m ON m.match_id = g.match_id
+JOIN teams t ON t.id = rh.winner
+WHERE m.date > "2025-01-01"             -- date minimale de la requête
+        AND m.date <= "2025-12-31"      -- date maximale de la requête
+GROUP BY team
+ORDER BY winrate_first_to_12 DESC;
+`
     }
 ];
 

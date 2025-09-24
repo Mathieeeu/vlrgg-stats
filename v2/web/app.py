@@ -90,13 +90,15 @@ def api_query():
     if not query:
         return jsonify({"error": "Requête vide"})
     
-    if not query.upper().startswith('SELECT'):
-        return jsonify({"error": "Seules les requêtes SELECT sont autorisées"})
+    query_upper = query.upper().strip()
+    if not (query_upper.startswith('SELECT') or query_upper.startswith('WITH')):
+        return jsonify({"error": "Seules les requêtes SELECT et WITH sont autorisées. Pas touche aux données !"})
     
     result = execute_query(query)
 
-    if int(result.get("count", 0)) > 1000:
-        result = {"error": "Le nombre de résultats dépasse la limite de 1000 lignes."}
+    max_results = 2000
+    if int(result.get("count", 0)) > max_results:
+        result = {"error": f"Le nombre de résultats dépasse la limite de {max_results} lignes. Faut pas abuser non plus."}
     return jsonify(result)
 
 if __name__ == '__main__':
