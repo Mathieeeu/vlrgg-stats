@@ -89,14 +89,14 @@ ORDER BY date desc;
     },
     {
         title: "Nombre de parties par carte",
-        description: "Les 12 cartes les plus jouées",
+        description: "Les cartes les plus jouées en VCT, tout simplement.",
         query:
 `SELECT 
     map, 
     COUNT(*) as play_count 
 FROM games 
 GROUP BY map 
-ORDER BY play_count DESC LIMIT 12;
+ORDER BY play_count DESC;
 `
     },
     {

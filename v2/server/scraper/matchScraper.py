@@ -226,10 +226,12 @@ class MatchScraper(BaseScraper):
             # Map
             map_elem = game_soup.select_one('.map')
             if map_elem:
-                map_text = map_elem.get_text(strip=True).partition('PICK')[0]
-                # nettoyer le nom de la map (enlever ":", chiffres, espaces)
-                cleaned_map = re.sub(r':\s*\d+', '', map_text)
-                cleaned_map = re.sub(r'\s+', ' ', cleaned_map).strip()
+                map_text = map_elem.get_text(strip=True).replace(' ', '')
+                # Prendre uniquement les premiers caractères avant un caractère spécial ou un chiffre
+                cleaned_map = re.split(r'[^a-zA-Z]', map_text)[0]
+                if cleaned_map.upper().endswith("PICK"):
+                    cleaned_map = cleaned_map[:-4]
+                cleaned_map = cleaned_map.strip()
                 game_data['map'] = cleaned_map
             
             # Pick
