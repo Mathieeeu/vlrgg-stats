@@ -25,16 +25,18 @@
     - [x] Scraping des stats d'économie (ex: https://www.vlr.gg/542195/?game=233397&tab=economy)
     - [x] Stockage des stats d'une map dans la base
 - [ ] Scraping manuel des évenements inter 2021 et 2022 (avec les équipes qui vont avec, histoire d'avoir quelques données pré-2023) (jugé pas utile finaleemnt)
-- [x] Interface web de gestion (style phpMyAdmin)
+- [ ] Interface web de gestion (style phpMyAdmin)
     - [x] GROS PB DE DUPLICATION SI LE MATCH/GAME EST DEJA DANS LA BASE (corrigé)
     - [x] Page d'exécution de requêtes SQL
     - [x] Exportation CSV de la requête
+    - [ ] Petits icones pour les requêtes préfabriquées (font awesome)
 - [ ] API REST pour le scraper
 - [ ] Petit dashboard sympatique avec quelques stats
     - [ ] Nombre de matchs/joueurs/teams/events
     - [ ] Top 10 des joueurs par un critère changeable (ACS, K, D, K/D, KAST, ADR, HS%, FK Diff, etc)
     - [ ] Graphique du nombre de victoires pour chaque région dans chaque tournoi inter (pour voir l'évolution dans le temps)
-- [ ] *Réparer le pb de regex avec les noms des maps qui persiste depuis le débuuuuuuuut*
+- [x] *Réparer le pb de regex avec les noms des maps qui persiste depuis le débuuuuuuuut*
 - [ ] Automatisation quotidienne du scraper
+- [ ] Systeme de mailing automatisé pour quand le scraper a fini sa tâche
 - [ ] PHP client pour le site 
 - [ ] Jeu VCTdle (style valodle avec des joueurs et des vraies stats (nombre d'équipes, nombre d'inters, kills, morts...))

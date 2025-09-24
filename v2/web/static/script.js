@@ -123,6 +123,26 @@ GROUP BY e.id, e.title, e.start_date, t.region
 ORDER BY e.start_date DESC, e.title, t.region
 LIMIT 200;
 `
+    },
+    {
+	title: "Statistiques de cartes pour une équipe",
+	description: "Nombre de parties, nombre de rounds gagnés moyen et winrate par carte pour une équipe donnée (ici Fnatic)",
+	query:
+`SELECT 
+    games.map, 
+    COUNT(*) AS played,
+    ROUND(AVG(game_scores.score), 1) AS avg_score,
+    ROUND(
+        100.0 * SUM(CASE WHEN games.win = teams.id THEN 1 ELSE 0 END) / COUNT(*),
+        1
+    ) AS winrate
+FROM games 
+JOIN game_scores ON game_scores.game_id = games.game_id
+JOIN teams ON teams.id = game_scores.team_id
+WHERE teams.short_name = "FNC"
+GROUP BY games.map 
+ORDER BY winrate DESC;
+`
     }
 ];
 
